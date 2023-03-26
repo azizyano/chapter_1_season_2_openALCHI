@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
 import Select from 'react-select';
+import constants from './../components/constants'
 import NFT from './artifacts/LittleAlchemy.json'
 import Token from './artifacts/Token.json'
 import Header from './../components/Header'
+import {CgChevronDoubleRightO, CgChevronDoubleLeftO,CgShoppingBag, CgListTree} from "react-icons/cg"
 import NftElement from './../components/NftElement'
 import toast, { Toaster } from 'react-hot-toast'
-const NFTaddress = ['0xd5d0c6b5578c179552a5d462c471051f2f87f189', '0x97C534CdEa1aA1730944ae27A3A11431C4e038Eb']
-const TokenAddress = ['0x1d94Cc954FcE49dB542A61D68901F787B874Cf4B', '0xA99C4A1438c1200f64b47D2CC30f1e702577604c']
 const imagelist = [
   '../imgs/water.png',
   '../imgs/air.png',
@@ -110,18 +110,21 @@ const elementsOptions = [
   { value: 23, label: 'Bitcoin' },
 ]
 const style = {
-  container: `  bg-gradient-to-r from-indigo-700 via-indigo-700 to-blue-700 py-10 px-10 rounded-xl mb-4`,
-  wrapper: `flex py-10 px-10 items-stretch grid grid-flow-col gap-4 bg-gradient-to-l from-green-800 to-blue-800`,
-  titleContainer: `px-2 py-2 text-xl drop-shadow-xl text-sky-400 border border-sky-500 rounded-xl mb-4`,
-  info: `flex justify-between py-4 text-[#151b22] text-lg drop-shadow-xl`,
+  container: ` py-4 px-4 rounded-xl `,
+  wrapper: `justify-between items-stretch grid gap-6 mb-6 md:grid-cols-2 `,
+  titleContainer: `text-4xl font-bold text-white mb-4`,
+  info: `text-lg text-white mb-8`,
   priceValue: `flex justify-center  font-bold mt-2`,
-  button: `bg-indigo-500 flex mx-auto text-[#9de8eb] text-lg py-4 px-4 rounded-lg cursor-pointer hover:bg-violet-600 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300`,
-  mintbutton: `bg-indigo-700 mx-auto text-[#9de8eb] text-lg py-4 px-4 rounded-lg cursor-pointer hover:bg-violet-600 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300`,
+  button0: `text-white bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:bg-gradient-to-br focus:ring-1 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800 font-medium rounded-lg text-sm px-3 py-1.5 text-center mr-2 mb-2 `,
+  button: `text-white bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:bg-gradient-to-br focus:ring-1 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 `,
+  mintbutton: `text-white bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2`,
 }
 
 const Game = () => {
   const [account, setAccount] = useState()
   const [balance, setBalance] = useState()
+  const [loading, setLoading] = useState(false)
+  const [loading2, setLoading2] = useState(false)
   const [balanceArray, setBalanceArray] = useState([0])
   const [NftBanalce, setNftBanalce] = useState([])
   const [mintFee, setmintFee] = useState([])
@@ -131,16 +134,25 @@ const Game = () => {
   const [elementB, setElementB] = useState({ value: 'mintStandard', label: 'Standard Elements' })
   const [nftaddress, setnftaddress] = useState()
   const [tokenAddress, setTokenAddress] = useState()
+  const [ImageIndex, setImageIndex] = useState()
   const [allowed, setAllowance] = useState()
   const [network, setnetwork] = useState()
-  useEffect(async () => {
+  useEffect(() => {
     searchnetwork()
-    console.log('nft address: ', nftaddress, 'account: ', account)
+
   }, [nftaddress])
   useEffect(() => {
+    if (!tokenAddress || !network) return
     accountInfo()
-    console.log('2nd')
-  }, [network])
+    window.ethereum.on('accountsChanged', function (accounts) {
+      searchnetwork()
+      accountInfo()
+    })
+    window.ethereum.on('networkChanged', function(networkId){
+      searchnetwork()
+      accountInfo()
+    });
+  }, [tokenAddress, network])
   const confirmClaim = (msg) => toast(msg)
 
   async function searchnetwork() {
@@ -148,79 +160,12 @@ const Game = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       setnetwork(network)
-      if (network.chainId == 1088) {
-        setnftaddress(NFTaddress[0]);
-        setTokenAddress(TokenAddress[0])
-      } else if (network.chainId == 7700) {
-        setnftaddress(NFTaddress[1]);
-        setTokenAddress(TokenAddress[1])
+      if (network.chainId == 7700) {
+        setnftaddress(constants.Cgame);
+        setTokenAddress(constants.Ctoken)
       }
     } catch (e) {
       console.log(e)
-    }
-  }
-
-  function magicFormula(elementA, elementB) {
-
-    const fusion = elementA.label + elementB.label
-    const fusion0 = elementB.label + elementA.label
-    for (let i = 0; i < options.length; i++) {
-      if (fusion == options[i].label || fusion0 == options[i].label) {
-        setResultat(options[i].value)
-        setFormula(options[i].value)
-        break
-      }
-      setResultat(1)
-    }
-  }
-
-  async function Approuve() {
-    if (account) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner()
-      const contract = new ethers.Contract(tokenAddress, Token.abi, signer)
-      const transaction = await contract.approve(nftaddress, "20000000000000000000")
-      await transaction.wait()
-      setAllowance(true)
-      confirmClaim('Approved successful!')
-    }
-  }
-  async function Mint(element) {
-    if (account) {
-      console.log(element);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer);
-      const mintelement = element.toString();
-      try {
-        const transaction = await contract2[mintelement]();
-        await transaction.wait()
-        accountInfo()
-        confirmClaim('transaction successful!')
-      } catch (error) {
-        console.log(error)
-        if (error.data) {
-          confirmClaim(error.data.message.toString())
-          console.log(error.data.message.toString())
-        } else {
-          confirmClaim("you can't mint this element")
-        }
-      }
-    }
-  }
-  async function mintStandard() {
-    if (account) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer);
-      try {
-        const transaction = await contract2.mintStandard();
-        await transaction.wait()
-        accountInfo()
-        confirmClaim('transaction successful!')
-      } catch (error) {
-        console.log(error)
-      }
     }
   }
   async function accountInfo() {
@@ -230,6 +175,7 @@ const Game = () => {
       const contract1 = new ethers.Contract(tokenAddress, Token.abi, signer)
       const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer)
       const account = await signer.getAddress()
+      console.log(account)
       const value = await contract1.allowance(account, nftaddress)
       const amount = value.toString()
       if (amount === '0') {
@@ -240,7 +186,7 @@ const Game = () => {
       setAccount(account)
       // balance
       const balance = await contract1.balanceOf(account)
-      setBalance(parseFloat(ethers.utils.formatEther(balance)).toFixed(2))
+      setBalance(parseFloat(ethers.utils.formatEther(balance)).toFixed(1))
       // fee
       const mintFee = await contract2.fee.call();
       setmintFee(parseFloat(ethers.utils.formatEther(mintFee)));
@@ -323,166 +269,290 @@ const Game = () => {
     } catch (e) {
       console.log(e.message)
     }
-
+    setLoading(false)
   }
+  function magicFormula(elementA, elementB) {
+
+    const fusion = elementA.label + elementB.label
+    const fusion0 = elementB.label + elementA.label
+    for (let i = 0; i < options.length; i++) {
+      if (fusion == options[i].label || fusion0 == options[i].label) {
+        setResultat(options[i].value)
+        setFormula(options[i].value)
+        const index = title.indexOf(options[i].value.replace('mint', ''))
+        setImageIndex(index)
+        break
+      }
+      setResultat(1)
+    }
+  }
+
+  async function Approuve() {
+    if (account) {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner()
+      const contract = new ethers.Contract(tokenAddress, Token.abi, signer)
+      const transaction = await contract.approve(nftaddress, "115792089237316195423570985008687907853269984665640564039457584007913129639935")
+      await transaction.wait()
+      setAllowance(true)
+      confirmClaim('Approved successful!')
+      } catch (error) {
+        console.log(error)
+      }
+      
+    }
+  }
+  //only owner
+  // async function setfundAddress() {
+  //   if (account) {
+  //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //     const signer = provider.getSigner()
+  //     const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer);
+  //     const transaction = await contract2.setfundAddress("0xCcAC92e41e23A2D97a3884f7f37F8A35830B6a58")
+  //     await transaction.wait()
+  //   }
+  // }
+
+  async function Mint(element) {
+    if (account) {
+      setLoading2(true)
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer);
+      const mintelement = element.toString();
+      try {
+        const transaction = await contract2[mintelement]();
+        await transaction.wait()
+        accountInfo()
+        confirmClaim('transaction successful!')
+      } catch (error) {
+        console.log(error)
+        confirmClaim("you can't mint this element")
+      }
+      setLoading2(false)
+    }
+  }
+  async function mintStandard() {
+    if (account) {
+      setLoading(true)
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract2 = new ethers.Contract(nftaddress, NFT.abi, signer);
+      try {
+        const transaction = await contract2.mintStandard();
+        await transaction.wait()
+        accountInfo()
+        confirmClaim('transaction successful!')
+      } catch (error) {
+        console.log(error)
+        confirmClaim('transaction rejected')
+        
+      }
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="h-screen bg-gradient-to-l from-green-800 to-blue-800">
+    <div className="bg-gray-700 h-screen ">
       <Header />
-      <div className={style.wrapper}>
-        <div className={style.container}>
-          <div className={style.titleContainer}>
-            The Alchemist's Garden
-          </div>
-          <div className={style.priceValue}>
-            <div className='w-4/5 text-center bg-blue-500 py-8 px-8 rounded-xl mb-4'>
-              {elementA.label}
-            </div>
-            <div className='w-4/5 text-center bg-blue-400 py-8 px-8 rounded-xl mb-4'>
-              {elementB.label}
-            </div>
-
-          </div>
-          <div className='mx-auto py-10 px-10'>
-
-          </div>
-          <div className={style.info}>
-            <img
-              className="justify-items-start h-[10rem] mx-auto animate-bounce "
-              src={imagelist[elementA.value]}
-              alt=""
-            />
-            <img
-              className="justify-items-end h-[10rem] mx-auto  animate-bounce "
-              src={imagelist[elementB.value]}
-              alt=""
-            />
-          </div>
-
-        </div>
-        <div className=''>
-          <div className='justify-self-end '>
-            <div className=''>
-              {allowed ? (
-                <>
-                  <div className={style.titleContainer}>
-                    <span> Magic formula</span>
-
-                  </div>
-                  <div>
-                    <span className='px-4 py-4 flex justify-center  font-bold mt-2'>Buy ALCHI token to mint New Elements
-                      {network.chainId == 1088 ?
-                        <a href="https://netswap.io/swap?inputCurrency=0x1d94cc954fce49db542a61d68901f787b874cf4b&outputCurrency/swap#/analytics/pairs/0xf2ad6d2bc50447c3688242c509a99bdd026ddcd7"
+      <aside className="fixed left-0 z-40 w-68 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar" >
+        <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+          <ul className="space-y-2">
+            <li>
+              <div className="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span className="ml-3">Balance </span>
+                <span className="ml-3 text-sky-400 "> {balance}</span>
+                <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">ALCHI</span>
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span className="ml-3">Mint Fee </span>
+                <span className="ml-3 text-sky-400 "> {mintFee}</span>
+                <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">ALCHI</span>
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+              <span className="ml-3 text-sky-400 ">Buy ALCHI</span>
+                <li className="ml-3 "> {network?.chainId == 1088 ?
+                      <a href="https://netswap.io/swap?inputCurrency=0x1d94cc954fce49db542a61d68901f787b874cf4b&outputCurrency/swap#/analytics/pairs/0xf2ad6d2bc50447c3688242c509a99bdd026ddcd7"
+                        >
+                        <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">Netswap </span>
+                        
+                      </a> : (network?.chainId == 250 ? (
+                        <a href="https://spooky.fi/#/swap?inputCurrency=FTM&outputCurrency=0x36996c8642810add6c5bb814ed7a7ca8abc26fe0"
                           className="text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                          <span className="mx-10 ">Netswap</span>
-                        </a> :
-                        <a href="https://www.cantoswap.fi/#/swap"
-                          className="text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                          <span className="mx-10 ">CantoSwap</span>
+                          <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">SpookySwap</span>
                         </a>
-                      }
+                      ) : (network?.chainId == 7700 ? (
+                      <a href="https://www.cantoswap.fi/#/swap?outputCurrency=0x5e8689741111442Eeb767507Fbf70BB5e8c3Bb6B">
+                        <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">CantoSwap</span>
+                      </a>)
+                      : (
+                        <a href="https://app.uniswap.org/#/tokens/optimism/0x36996c8642810add6c5bb814ed7a7ca8abc26fe0">
+                        <span className="inline-flex items-center justify-center px-2 ml-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">Uniswap</span>
+                      </a>
+                      )))
 
-
-                    </span>
-                  </div>
-                  <label className='px-1 py-2 flex justify-center  mt-2 text-sm'> To start you need first to have standard elements, there are 4 elements the total fee is {4 * mintFee} ALCHI.</label>
-                  <button className={style.button} onClick={() => mintStandard()}>Mint Standard Elements</button>
-                  <div className='w-4/5 flex mx-auto py-8 px-8 '>
-                    <Select
-                      value={elementA}
-                      onChange={setElementA}
-                      options={elementsOptions}
-                      className='w-4/5 mx-auto px-4'
-                    />
-                    <Select
-                      value={elementB}
-                      onChange={setElementB}
-                      options={elementsOptions}
-                      className='w-4/5 mx-auto px-4'
-                    />
-                  </div>
-                  <label className='px-1 py-2 flex justify-center mt-2 text-sm'>you can now start searching for new elements, but you cant mint any new element <br />
-                    if you don't have a formula element. Example Air + fire = Energy <br />
-                    'your need to have Air and Fire in your balance'.
-                  </label>
-                  <button className={style.button} onClick={() => magicFormula(elementA, elementB)}>try formula</button>
-                  <div className='justify-self-center mx-auto py-4'>
-                    {resultat == '0' ?
-                      (<div className=''> </div>) :
-                      resultat == 1 ?
-                        <div className=' text-xl text-[#da4859] text-center '>Try new Formula </div>
-                        : (
-                          <div className='flex '>
-                            <button className={style.mintbutton} onClick={() => Mint(resultat)} > {resultat} </button>
-                            <Toaster
-                              position="top-center"
-                              reverseOrder={false}
-                              gutter={8}
-                              toastOptions={{
-                                className: '',
-                                duration: 5000,
-                                style: {
-                                  background: '#363636',
-                                  color: '#fff',
-                                },
-                                success: {
-                                  duration: 3000,
-                                  theme: {
-                                    primary: 'green',
-                                    secondary: 'black',
-                                  },
-                                },
-                              }} />
-                          </div>
-                        )}
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <button className={style.button} onClick={() => Approuve()} >Approve to access</button>
-                  <Toaster />
-                </div>
-              )
-
+                    }</li> 
+              </div>
+            </li>
+            
+            <li>
+              <div className="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white ">
+                  <CgShoppingBag/>
+                <span className="flex-1 ml-3 whitespace-nowrap">NFT balance</span>
+              </div>
+            </li>
+            <div className='bg-gray-700 flex flex-wrap w-60 rounded-lg'>
+              {
+                NftBanalce?.map((item, index) => (
+                  <NftElement
+                    key={index}
+                    item={item}
+                  />
+                )
+                )
               }
             </div>
-            <div className={style.titleContainer}>
-              Account
-            </div>
-            <div className={style.priceValue}>
-              <p className='text-sky-400 px-2 py-2'>Balance: {balance} ALCHI </p>
-              <img
-                src="https://littlealchi.xyz/imgs/logo_name.png"
-                alt="ALCHI"
-                className='py-2 px-2 h-10 mr-2'
-              />
+          </ul>
 
-            </div>
-            <div className={style.priceValue}>
-              <p className='text-sky-400 px-2 py-2'> Mint Fee: {mintFee} ALCHI </p>
+        </div>
+      </aside>
+      <div className="p-2 sm:ml-64">
+      {account === '0xD687ca2fa168e7BAbed632803F6E4b06ef98B764' ? (
+                <div>
+                    <button className={style.button0} onClick={() => setfundAddress()}>setfundAdrress</button>
+                    
+                </div>
+            )
+            : (
+                <div></div>
+            )}
+        <div className=' p-2 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700' >
+        
+              <div className="flex flex-wrap items-center justify-center p-2 mb-2 rounded bg-gray-50 dark:bg-gray-800">
+              <p className="mb-2 p-4 font-light text-gray-400 dark:text-gray-300">To start you need first to have standard elements "Air", "Fire", "Earth" and "Water", total fee to mint is {4 * mintFee} ALCHI.</p>
+                {loading ? (
+                  <div className=" flex items-center justify-center">
+                  <div className="px-3 py-1 text-xs font-medium leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse dark:bg-blue-900 dark:text-blue-200">loading...</div>
+                </div>
 
-              <img
-                src="https://littlealchi.xyz/imgs/logo_name.png"
-                alt="MATIC"
-                className='py-2 px-2 h-10 mr-2'
-              />
-            </div>
-            <div className=" grid justify-items-stretch ">
-              <p className={style.titleContainer}>ELEMENTS</p>
-              <div className='flex grid grid-cols-4 gap-4 '>
-                {
-                  NftBanalce.map((item, index) => (
-                    <NftElement
-                      key={index}
-                      item={item}
-                    />
-                  )
-                  )
-                }
+                ) : (
+                  allowed ? (
+                  <button className={style.button0} onClick={() => mintStandard()}>Mint Standard Elements</button>
+                  ):
+                    (
+                      <button className={style.button} onClick={() => Approuve()} >Approve 400 ALCHI to play</button>
+                    )
+                )}
               </div>
+              
+              <div className="grid grid-cols-3 gap-4 mb-2">
+                <div className="flex flex-wrap items-center  justify-center  rounded bg-gray-50 dark:bg-gray-800">
+                  <label className="block m-1 text-sm font-medium text-gray-900 dark:text-white">Select element</label>
+                  <Select
+                    className='m-4'
+                    value={elementA}
+                    onChange={setElementA}
+                    options={elementsOptions}
+                  />
+                  <img
+                          width='20'
+                          src={imagelist[elementA.value]}
+                          alt=""
+                        />
+                </div>
+                <div className="flex items-center justify-center rounded">
+                  
+                  <button className={style.button} onClick={() => magicFormula(elementA, elementB)}>
+                     Fusion 
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center justify-center  rounded bg-gray-50 dark:bg-gray-800">
+                  <img
+                          width='20'
+                          src={imagelist[elementB.value]}
+                          alt=""
+                        />
+                  <Select
+                    className='m-4'
+                    value={elementB}
+                    onChange={setElementB}
+                    options={elementsOptions}
+                  />
+                  <label className="block m-1 text-sm font-medium text-gray-900 dark:text-white">Select element </label>
 
-            </div>
+                </div>
 
-          </div>
+              </div>
+              <div className="flex flex-wrap items-center justify-center py-4 m-auto rounded bg-gray-50 dark:bg-gray-800">
+                
+                {resultat == '0' ?
+                  (<div className=''> </div>) :
+                  resultat == 1 ?
+                    <div>
+                      <div className='py-4 flex flex-wrap'>
+                        <img
+                          width='100'
+                          className="p-2 mx-auto  animate-bounce "
+                          src={imagelist[elementA.value]}
+                          alt=""
+                        />
+                        <img
+                          width='100'
+                          className="p-2 mx-auto animate-bounce "
+                          src={imagelist[elementB.value]}
+                          alt=""
+                        />
+                      </div>
+                      <div className='block m-2 text-sm font-medium dark:text-[#fc7d8b] '>You cant combine these elements </div>
+                    </div>
+
+                    : (
+                      <div className='py-4 space-y-2'>
+                        <img
+                          width="100"
+                          className="  animate-bounce "
+                          src={imagelist[ImageIndex]}
+                          alt=""
+                        />
+                        <div className='flex p-2'>
+                          {loading2 ? (
+                            <div className=" flex items-center justify-center">
+                            <div className="px-3 py-1 text-xs font-medium leading-none text-center text-blue-800 bg-blue-200 rounded-full animate-pulse dark:bg-blue-900 dark:text-blue-200">loading...</div>
+                          </div>
+
+                          ) : (
+                            <button className={style.mintbutton} onClick={() => Mint(resultat)} > {resultat} </button>
+                          )}
+                        </div>
+                        <Toaster
+                          position="top-center"
+                          reverseOrder={false}
+                          gutter={8}
+                          toastOptions={{
+                            className: '',
+                            duration: 5000,
+                            style: {
+                              background: '#0070ff',
+                              color: '#fff',
+                            },
+                            success: {
+                              duration: 3000,
+                              theme: {
+                                primary: 'green',
+                                secondary: 'black',
+                              },
+                            },
+                          }} />
+                      </div>
+                    )}
+
+              </div>
+              <Toaster />
         </div>
 
       </div>

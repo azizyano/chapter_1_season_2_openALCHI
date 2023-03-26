@@ -1,6 +1,7 @@
 import Header from '../../components/Header'
 import { useEffect, useMemo, useState } from 'react'
 import { useWeb3 } from '@3rdweb/hooks'
+import constants from '../../components/constants'
 import { ethers } from 'ethers'
 import Market from '../artifacts/NFTMarket.json'
 import { useRouter } from 'next/router'
@@ -59,11 +60,10 @@ const title = [
   'blockchain',
   'Bitcoin',
 ]
-const NFTmarketaddress = ['0x588851fb3Ca38855FaB2880522E527476408911A','0x79CA4A4DDF4aff4EA91E5F0c678bF36d5A19Da7e']
 
 
 const style = {
-  wrapper: `flex flex-col items-center container-lg text-[#e5e8eb]`,
+  wrapper: `bg-gray-600 m-auto p-2 flex flex-col items-center  text-[#e5e8eb]`,
   container: `container p-6`,
   topContent: `flex`,
   nftImgContainer: `flex-1 mr-4`,
@@ -88,9 +88,9 @@ const Nft = () => {
             nftmarketaddress,
             Market.abi,
             signer
-          )
+          ) 
         const data = await marketContract.fetchMarketItems()
-        const meta = ''
+        var meta = ''
           try {
              meta = imagelist[data[selectedNftItem].tokenId] ;
           } catch (error) {
@@ -115,10 +115,8 @@ const Nft = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       console.log(network)
-      if (network.chainId == 1088){
-        setnftmarketaddress(NFTmarketaddress[0])
-      } else if (network.chainId == 7700){
-        setnftmarketaddress(NFTmarketaddress[1])
+      if (network.chainId == 7700){
+        setnftmarketaddress(constants.Cmarket)
       }
     } catch(e){
         console.log(e)
@@ -129,7 +127,7 @@ const Nft = () => {
   return (
     <div>
       <Header />
-      <div className={style.wrapper}>
+      <div className='bg-gray-700 h-screen'>
         <div className={style.container}>
           <div className={style.topContent}>
             <div className={style.nftImgContainer}>

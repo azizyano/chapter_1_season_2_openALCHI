@@ -2,17 +2,10 @@
 
 NFT Card game 
 
-contract deployed on canto mainnet 
-
-token address ALCHI : 0xA99C4A1438c1200f64b47D2CC30f1e702577604c
-
-NFTGame : 0x97C534CdEa1aA1730944ae27A3A11431C4e038Eb
-
-NFT marcetplace: 0x79CA4A4DDF4aff4EA91E5F0c678bF36d5A19Da7e
 
 ## Introduction
 
-this project is a submission to CANTO Hackathon, 
+Submission to CANTO Hackathon, 
 
 ### Demo: 
 
@@ -65,23 +58,12 @@ yarn dev
 
 ```
 
-please contact me if you find any issue or to contribute 
 
 ## Authors
 
 Twitter
 =======
-Twiiter
+Twitter
 [@arablockchain1](https://twitter.com/arablockchain1)
 
-## Version History
 
-* 0.1
-    * Initial Release
-
-
-## Acknowledgments
-
-Inspiration and  code snippets 
-* [CleverProgrammers](https://github.com/CleverProgrammers/opensea-blockchain-youtube)
-* [littlealchemy](https://littlealchemy.com/)

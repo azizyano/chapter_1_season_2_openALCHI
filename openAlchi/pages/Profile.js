@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
+import constants from './../components/constants'
 import NFT from './artifacts/LittleAlchemy.json'
 import Header from './../components/Header'
 import Market from './artifacts/NFTMarket.json'
 import NFTCard1 from './../components/NFTCard1'
 import NFTCard2 from './../components/NFTCard2'
-const NFTaddress = ['0xd5d0c6b5578c179552a5d462c471051f2f87f189','0x97C534CdEa1aA1730944ae27A3A11431C4e038Eb']
-const NFTmarketaddress = ['0x588851fb3Ca38855FaB2880522E527476408911A','0x79CA4A4DDF4aff4EA91E5F0c678bF36d5A19Da7e']
 const imagelist = [
   '../imgs/water.png',
   '../imgs/air.png',
@@ -62,20 +61,15 @@ const title = [
 
 const style = {
   bannerImageContainer: `overflow-hidden flex justify-center items-center`,
-  info: `flex mx-10 text-[#e4e8eb] text-xl drop-shadow-xl`,
+  info: `flex justfy-between mx-auto text-[#e4e8eb] text-l drop-shadow-xl`,
   title: `text-5xl font-bold mb-4`,
-  statsContainer: `w-[44vw] px-4 py-4 mx-10 flex justify-between py-4 border border-[#151b22] rounded-xl mb-4`,
-  listContainer: `mx-10 px-10 py-10 flex justify-between my-10 py-4 border border-[#151b22] rounded-xl mb-4`,
-  ethLogo: `h-6 mr-2`,
-  pValue: `w-full px-2 py-2 mx-2 text-[#68baba] text-center text-xl font-bold mt-2`,
-  wrapper: `bg-[#303339]  my-10 mx-5 rounded-2xl overflow-hidden`,
 }
 
 const Profile = () => {
   const [account, setAccount] = useState()
   const [balanceArray, setBalanceArray] = useState([0])
+  const [tokenName, setTokenName] = useState('')
   const [NftBanalce, setNftBanalce] = useState([])
-  const [collection, setCollection] = useState({})
   const [items, setNfts] = useState([])
   const [treasury, setTreasury] = useState(0)
   const [nftaddress, setnftaddress] = useState('')
@@ -97,12 +91,10 @@ const Profile = () => {
     try{
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
-      if (network.chainId == 1088){
-        setnftaddress(NFTaddress[0]);
-        setnftmarketaddress(NFTmarketaddress[0])
-      } else if (network.chainId == 7700){
-        setnftaddress(NFTaddress[1]);
-        setnftmarketaddress(NFTmarketaddress[1])
+      if (network.chainId == 7700){
+        setnftaddress(constants.Cgame);
+        setnftmarketaddress(constants.Cmarket)
+        setTokenName('Canto')
       }
     } catch(e){
         console.log(e)
@@ -122,7 +114,7 @@ const Profile = () => {
       let treasury = 0
       const items = await Promise.all(
         data.map(async (i) => {
-          const meta = ''
+          var meta = ''
           try {
             meta = imagelist[i.tokenId]
           } catch (error) {
@@ -151,6 +143,7 @@ const Profile = () => {
         })
       )
       setNfts(items)
+      console.log("read data")
       setTreasury(treasury.toFixed(2))
     } catch{
       console.log(Error)
@@ -249,66 +242,73 @@ const Profile = () => {
   }
 
   return (
-    <div className=" h-screen bg-gradient-to-l from-green-800 to-blue-800 ">
+    <div className=" ">
       <Header />
-        <div className="w-full bg-gradient-to-l from-green-700 to-blue-700 ">
-        <div className={style.bannerImageContainer}>
-                <div className="mx-4 flex">
-                  <div className={style.info}>Balance
-                    <div className={'px-10'}>
-                      {NftBanalce.length}
-                    </div> 
-                  </div>
-                  <div className={style.info}>Listed NFT
-                    <div className={'px-10'}>
-                      {items.length}
-                    </div>
-                  </div>
-                  <div className={style.info}>Total earned 
-                  <div className={'px-10'}>
-                    {treasury} 
-                  </div>
-                  
-                  </div>
-                  
+        <div className='m-auto p-2 bg-gray-700 '>
+          <div className={style.bannerImageContainer}>
+            <div className=" flex">
+              <div className={style.info}>Balance
+                <div className={'text-sm text-sky-400 m-auto px-4'}>
+                  {NftBanalce.length}
+                </div> 
+              </div>
+              <div className={style.info}>Listed NFT
+                <div className={'text-sm text-sky-400 m-auto px-4'}>
+                  {items.length}
                 </div>
               </div>
-              <div className={style.info}>NFT balance</div>
-              <div className=" flex flex-wrap  ">
-              
-                {NftBanalce.map((nftItem, id) => (
-                  <div  className={style.wrapper} key={id}>
-                    <NFTCard1
-                      key={id}
-                      order={nftItem.tokenId}
-                      nftItem={nftItem}
-                      name={nftItem.name}
-                      title={title[nftItem.tokenId]}
-                      listings={nftItem.sold}
-                      price={nftItem.price}
-                      balance={nftItem.balance}
-                    />
-                  </div>
-                ))}
+              <div className={style.info}>Total earned 
+              <div className={'text-sm text-sky-400 m-auto px-4'}>
+                {treasury} { tokenName}
               </div>
-              <div className={style.info}>Listed NFT </div>
               
-                <div className=" flex flex-wrap ">
-                
-                  {items.map((nftItem, id) => (
-                    <div className={style.wrapper} key={id}>
-                      <NFTCard2
-                        key={id}
-                        order={id}
-                        nftItem={nftItem}
-                        name={nftItem.name}
-                        title={title[nftItem.tokenId]}
-                        listings={nftItem.sold}
-                        price={nftItem.price}
-                      />
-                    </div>
-                  ))}
+              </div>
+              
+            </div>
+          </div>
+          <div className=' ' >
+            <div className='p-4 m-2 border rounded-lg'>
+            <span className="flex-1 ml-3 whitespace-nowrap dark:text-gray-200 ">NFT balance</span>
+            <div className=" m-auto p-2 flex flex-wrap justify-center ">
+            
+              {NftBanalce.map((nftItem, id) => (
+                <div  className='flex justify-between p-2 ' key={id}>
+                  <NFTCard1
+                    key={id}
+                    order={nftItem.tokenId}
+                    nftItem={nftItem}
+                    name={nftItem.name}
+                    title={title[nftItem.tokenId]}
+                    listings={nftItem.sold}
+                    price={nftItem.price}
+                    balance={nftItem.balance}
+                  />
                 </div>
+              ))}
+            </div>
+          </div>
+          <div className='p-4 m-2 border rounded-lg'>
+            <span className="flex-1 ml-3 whitespace-nowrap dark:text-gray-200">Listed NFT</span>
+          
+          <div className=" m-auto p-2 flex flex-wrap justify-center ">
+            
+              {items.map((nftItem, id) => (
+                <div className='flex justify-between p-2' key={id}>
+                  <NFTCard2
+                    key={id}
+                    order={id}
+                    nftItem={nftItem}
+                    name={nftItem.name}
+                    title={title[nftItem.tokenId]}
+                    listings={nftItem.sold}
+                    price={nftItem.price}
+                  />
+                </div>
+              ))}
+          </div>
+          </div>
+          </div>
+          
         </div>
     </div>
   )

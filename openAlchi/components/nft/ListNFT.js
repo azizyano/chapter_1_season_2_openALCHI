@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
 import { IoMdWallet } from 'react-icons/io'
 import toast, { Toaster } from 'react-hot-toast'
+import constants from '../constants'
 import NFT from '../../pages/artifacts/LittleAlchemy.json'
 import Market from '../../pages/artifacts/NFTMarket.json'
 
-const NFTaddress = ['0xd5d0c6b5578c179552a5d462c471051f2f87f189','0x97C534CdEa1aA1730944ae27A3A11431C4e038Eb']
-const NFTmarketaddress = ['0x588851fb3Ca38855FaB2880522E527476408911A','0x79CA4A4DDF4aff4EA91E5F0c678bF36d5A19Da7e']
 
 const style = {
   button: `mr-8 flex items-center py-2 px-12 rounded-lg cursor-pointer`,
@@ -48,24 +47,22 @@ const MakeOffer = ({ selectedNft}) => {
     searchnetwork()
   })
   useEffect(() => {
-    if (!selectedNft) return
+    if (!nftmarketaddress) return
     Approved()
-  }, [selectedNft])
+  }, [nftmarketaddress])
   async function searchnetwork() {
     try{
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       console.log(network)
-      if (network.chainId == 1088){
-        setnftaddress(NFTaddress[0]);
-        setnftmarketaddress(NFTmarketaddress[0])
-      } else if (network.chainId == 7700){
-        setnftaddress(NFTaddress[1]);
-        setnftmarketaddress(NFTmarketaddress[1])
+      if (network.chainId == 7700){
+        setnftaddress(constants.Cgame);
+        setnftmarketaddress(constants.Cmarket)
       }
     } catch(e){
         console.log(e)
       }
+      console.log(nftaddress, nftmarketaddress)
     }
 async function ApproveMarket() {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -75,6 +72,16 @@ async function ApproveMarket() {
   let transaction = await contract.setApprovalForAll(address, true)
   await transaction.wait()
   setApprovedMarket(true)
+  confirmApproved()
+}
+async function UnApproveMarket() {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner()
+  const address = nftmarketaddress.toString()
+  const contract = new ethers.Contract(nftaddress, NFT.abi, signer)
+  let transaction = await contract.setApprovalForAll(address, false)
+  await transaction.wait()
+  setApprovedMarket(false)
   confirmApproved()
 }
 
@@ -96,7 +103,7 @@ async function ApproveMarket() {
         await transaction.wait()
         confirmClaim('listed successful!')
       } catch (error) {
-        confirmClaim(error.data.message.toString())
+        confirmClaim(error.message.toString())
       }
   }
   const changeAmount = ({ target }) => {
@@ -122,14 +129,14 @@ async function ApproveMarket() {
           >
             <IoMdWallet className={style.buttonIcon} />
             <div className={style.buttonText}>List Now</div>
+            
           </div>
+          
           </>
           
           : 
           <div
-            onClick={() => {ApproveMarket()
-            }}
-            className={`${style.button} bg-[#2081e2] hover:bg-[#42a0ff]`}
+            onClick={() => {ApproveMarket()}} className={`${style.button} bg-[#2081e2] hover:bg-[#42a0ff]`}
           >
             <IoMdWallet className={style.buttonIcon} />
             <div className={style.buttonText}>Approve</div>
