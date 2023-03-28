@@ -445,7 +445,7 @@ const Game = () => {
                   <button className={style.button0} onClick={() => mintStandard()}>Mint Standard Elements</button>
                   ):
                     (
-                      <button className={style.button} onClick={() => Approuve()} >Approve 400 ALCHI to play</button>
+                      <button className={style.button} onClick={() => Approuve()} >Approve ALCHI token</button>
                     )
                 )}
               </div>
