@@ -177,8 +177,9 @@ const Game = () => {
       const account = await signer.getAddress()
       console.log(account)
       const value = await contract1.allowance(account, nftaddress)
-      const amount = value.toString()
-      if (amount === '0') {
+      const amount = (value/10**18).toString()
+      console.log(amount/10**18)
+      if (amount <= 40) {
         setAllowance(false)
       } else {
         setAllowance(true)
